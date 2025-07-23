@@ -27,7 +27,7 @@ Python 3.8+
 Git
 Ollama for running the local LLM.
 1. Clone the Repository
-"git clone https://github.com/Sunshield90/PARALEGAL-AI-Legal-Advisor-bot-/tree/main"
+"git clone https://github.com/Sunshield90/PARALEGAL-AI-Legal-Advisor-bot-"
 "cd PARALEGAL-AI"
 2. Install Dependencies
 Install the required Python packages using the requirements.txt file.
