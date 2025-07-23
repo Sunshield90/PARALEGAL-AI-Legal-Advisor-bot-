@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParaLegal - AI Legal Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        :root {
+            --bg-primary: #f9fafb;
+            --bg-secondary: #ffffff;
+            --bg-accent: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --border-color: #e5e7eb;
+            --accent-color: #2563eb; 
+        }
+
+        .dark-mode {
+            --bg-primary: #1a120b;
+            --bg-secondary: #2a2018;
+            --bg-accent: #382e25;
+            --text-primary: #fdfbf7;
+            --text-secondary: #d4af37;
+            --border-color: #8B4513;
+            --accent-color: #5D1C1A;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .dark-mode .bg-animated-aurora {
+            background: var(--bg-primary);
+            background-image: radial-gradient(at 20% 25%, hsla(30, 60%, 30%, 0.3) 0px, transparent 50%),
+                              radial-gradient(at 80% 75%, hsla(40, 70%, 40%, 0.3) 0px, transparent 50%);
+            animation: aurora 20s infinite linear;
+        }
+        @keyframes aurora {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-accent); }
+        ::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 5px; border: 2px solid var(--bg-accent); }
+        ::-webkit-scrollbar-thumb:hover { background: #a58469; }
+        html { scroll-behavior: smooth; }
+        body { overflow-y: auto; }
+        .btn-theme {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .btn-theme:hover {
+            opacity: 0.9;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .mic-listening {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+        .is-speaking {
+            animation: speaking-glow 1.2s infinite alternate ease-in-out;
+        }
+        @keyframes speaking-glow {
+            from { box-shadow: 0 0 15px 0px rgba(212, 175, 55, 0.4); }
+            to { box-shadow: 0 0 30px 8px rgba(212, 175, 55, 0.7); }
+        }
+        .spotlight-effect {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .spotlight-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .spotlight-effect::before {
+            content: '';
+            position: absolute;
+            left: var(--x, 50%);
+            top: var(--y, 50%);
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, var(--accent-color) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .spotlight-effect:hover::before {
+            opacity: 0.15;
+        }
+        .dark-mode .spotlight-effect::before {
+             background: radial-gradient(circle, rgba(212, 175, 55, 0.8) 0%, transparent 60%);
+        }
+        .dark-mode .spotlight-effect:hover::before {
+            opacity: 0.2;
+        }
+        .typewriter::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { color: transparent; }
+            50% { color: var(--text-secondary); }
+        }
+        .btn-mute.muted {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-mute.muted:hover {
+            background-color: #ef4444;
+        }
+        .marquee {
+            display: flex;
+            animation: scroll-horizontal 40s linear infinite;
+        }
+        .marquee:hover {
+            animation-play-state: paused;
+        }
+        @keyframes scroll-horizontal {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
+        .testimonial-card {
+            width: 33.333%;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="bg-animated-aurora">
+
+    <div id="website-view">
+        <header class="sticky top-0 z-50 bg-opacity-80 backdrop-blur-sm border-b" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="scale" class="text-2xl" style="color: var(--accent-color);"></i>
+                    <h1 class="text-2xl font-bold tracking-wider font-serif" style="color: var(--text-primary);">ParaLegal</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="#features" class="transition-colors" style="color: var(--text-secondary);">Features</a>
+                    <a href="#how-it-works" class="transition-colors" style="color: var(--text-secondary);">How It Works</a>
+                    <a href="#testimonials" class="transition-colors" style="color: var(--text-secondary);">Testimonials</a>
+                    <a href="#login-section" class="transition-colors" style="color: var(--text-secondary);">Login</a>
+                    <button id="theme-toggle" class="p-2 rounded-full" style="background-color: var(--bg-accent);">
+                        <i data-lucide="sun" class="w-5 h-5" style="color: var(--text-secondary);"></i>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <section class="min-h-screen flex items-center justify-center text-center px-6 fade-in">
+                <div>
+                    <h2 class="text-6xl md:text-7xl font-bold tracking-wider font-serif" style="color: var(--text-primary);">Instant Legal Insight, <br> Powered by AI</h2>
+                    <p class="mt-4 text-lg max-w-2xl mx-auto" style="color: var(--text-secondary);">ParaLegal leverages advanced AI to provide you with immediate, accurate, and comprehensive legal research. Streamline your workflow and make informed decisions faster.</p>
+                    <a href="#login-section" class="mt-8 inline-block py-3 px-8 rounded-md shadow-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 btn-theme font-serif tracking-wider">Get Started</a>
+                </div>
+            </section>
+
+            <section id="features" class="py-24" style="background-color: var(--bg-secondary);">
+                <div class="container mx-auto px-6 text-center">
+                    <h3 class="text-4xl font-bold font-serif mb-12" style="color: var(--text-primary);">Core Features</h3>
+                    <div class="grid md:grid-cols-3 gap-12">
+                        <div class="spotlight-effect feature-card fade-in" style="animation-delay: 0.2s;">
+                            <div class="p-6 rounded-full inline-block border-2" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                <i data-lucide="brain-circuit" class="w-12 h-12" style="color: var(--accent-color);"></i>
+                            </div>
+                            <h4 class="text-2xl font-serif font-bold mt-4 mb-2" style="color: var(--text-primary);">AI-Powered Research</h4>
+                            <p style="color: var(--text-secondary);">Get answers to complex legal questions in seconds, backed by a vast knowledge base.</p>
+                        </div>
+                        <div class="spotlight-effect feature-card fade-in" style="animation-delay: 0.4s;">
+                             <div class="p-6 rounded-full inline-block border-2" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                <i data-lucide="palette" class="w-12 h-12" style="color: var(--accent-color);"></i>
+                            </div>
+                            <h4 class="text-2xl font-serif font-bold mt-4 mb-2" style="color: var(--text-primary);">Dual-Theme UI</h4>
+                            <p style="color: var(--text-secondary);">Choose between a classic dark theme or a clean, professional light theme to suit your preference.</p>
+                        </div>
+                        <div class="spotlight-effect feature-card fade-in" style="animation-delay: 0.6s;">
+                             <div class="p-6 rounded-full inline-block border-2" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                <i data-lucide="mic" class="w-12 h-12" style="color: var(--accent-color);"></i>
+                            </div>
+                            <h4 class="text-2xl font-serif font-bold mt-4 mb-2" style="color: var(--text-primary);">Voice Assistant</h4>
+                            <p style="color: var(--text-secondary);">Interact with the AI using your voice for a hands-free, conversational experience.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="how-it-works" class="py-24">
+                <div class="container mx-auto px-6 text-center">
+                    <h3 class="text-4xl font-bold font-serif mb-12" style="color: var(--text-primary);">Simple Steps to Clarity</h3>
+                    <div class="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">
+                        <div class="flex flex-col items-center fade-in" style="animation-delay: 0.2s;">
+                            <div class="p-5 rounded-full inline-block border-2" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <i data-lucide="edit" class="w-10 h-10" style="color: var(--accent-color);"></i>
+                            </div>
+                            <h4 class="text-xl font-serif font-bold mt-4 mb-2" style="color: var(--text-primary);">1. Ask Your Question</h4>
+                            <p style="color: var(--text-secondary);">Type or speak your legal query into the interface.</p>
+                        </div>
+                        <div class="flex flex-col items-center fade-in" style="animation-delay: 0.4s;">
+                            <div class="p-5 rounded-full inline-block border-2" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <i data-lucide="search" class="w-10 h-10" style="color: var(--accent-color);"></i>
+                            </div>
+                            <h4 class="text-xl font-serif font-bold mt-4 mb-2" style="color: var(--text-primary);">2. AI Analyzes</h4>
+                            <p style="color: var(--text-secondary);">ParaLegal processes your query against its extensive knowledge base.</p>
+                        </div>
+                        <div class="flex flex-col items-center fade-in" style="animation-delay: 0.6s;">
+                            <div class="p-5 rounded-full inline-block border-2" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                                <i data-lucide="message-square" class="w-10 h-10" style="color: var(--accent-color);"></i>
+                            </div>
+                            <h4 class="text-xl font-serif font-bold mt-4 mb-2" style="color: var(--text-primary);">3. Receive Your Answer</h4>
+                            <p style="color: var(--text-secondary);">Get a clear, concise, and well-supported response in moments.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="testimonials" class="py-24" style="background-color: var(--bg-secondary);">
+                <div class="container mx-auto px-6 text-center">
+                    <h3 class="text-4xl font-bold font-serif mb-12" style="color: var(--text-primary);">Trusted by Professionals and Many</h3>
+                    <div class="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+                        <div class="marquee">
+                            <div class="testimonial-card p-4">
+                                <div class="p-8 rounded-lg border h-full" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                    <p class="italic" style="color: var(--text-secondary);">"ParaLegal's ability to cross-reference case law and statutes is unparalleled. It saved my team at least 10 hours of manual research on a recent M&A deal. A true game-changer for due diligence."</p>
+                                    <p class="font-bold font-serif mt-4" style="color: var(--text-primary);">- David Chen, Corporate Lawyer</p>
+                                </div>
+                            </div>
+                            <div class="testimonial-card p-4">
+                                <div class="p-8 rounded-lg border h-full" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                    <p class="italic" style="color: var(--text-secondary);">"As a law student, breaking down complex legal doctrines is a daily struggle. ParaLegal explains concepts with a clarity that textbooks often lack. It's become my go-to study partner."</p>
+                                    <p class="font-bold font-serif mt-4" style="color: var(--text-primary);">- Emily Rodriguez, Law Student</p>
+                                </div>
+                            </div>
+                            <div class="testimonial-card p-4">
+                                <div class="p-8 rounded-lg border h-full" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                    <p class="italic" style="color: var(--text-secondary);">"The voice-to-text feature is incredibly accurate and allows me to dictate queries while reviewing documents. The efficiency boost is significant. I've recommended it to all my colleagues."</p>
+                                    <p class="font-bold font-serif mt-4" style="color: var(--text-primary);">- Mark Thompson, Litigation Associate</p>
+                                </div>
+                            </div>
+                             <!-- Duplicated for seamless loop -->
+                             <div class="testimonial-card p-4">
+                                <div class="p-8 rounded-lg border h-full" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                    <p class="italic" style="color: var(--text-secondary);">"As a small business owner, I can't always afford a full-time legal team. This chatbot gave me fast, clear answers on contracts and compliance. It’s like having a legal assistant available 24/7."</p>
+                                    <p class="font-bold font-serif mt-4" style="color: var(--text-primary);">- Sarah M., Owner of Artisan & Co.</p>
+                                </div>
+                            </div>
+                            <div class="testimonial-card p-4">
+                                <div class="p-8 rounded-lg border h-full" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                    <p class="italic" style="color: var(--text-secondary);">"I was nervous about handling a landlord dispute on my own, but the chatbot guided me step-by-step. I felt supported, informed, and confident."</p>
+                                    <p class="font-bold font-serif mt-4" style="color: var(--text-primary);">- Derrick F., Tenant in NYC</p>
+                                </div>
+                            </div>
+                            <div class="testimonial-card p-4">
+                                <div class="p-8 rounded-lg border h-full" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                                    <p class="italic" style="color: var(--text-secondary);">"I was skeptical at first, but this tool really helped me prep for moot court. It explained complex legal concepts in a simple, digestible way. A game-changer for students."</p>
+                                    <p class="font-bold font-serif mt-4" style="color: var(--text-primary);">- Olivia T., 2L Law Student</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="login-section" class="min-h-screen flex items-center justify-center p-4">
+                <div class="spotlight-effect w-full max-w-md p-8 space-y-8 rounded-lg shadow-2xl border" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                    <div class="text-center">
+                        <h3 class="text-4xl font-bold tracking-wider font-serif" style="color: var(--text-primary);">Access Your Counsel</h3>
+                        <p class="mt-2" style="color: var(--text-secondary);">Sign in to begin your session.</p>
+                    </div>
+                    <form id="login-form" class="space-y-6">
+                        <div>
+                            <label for="email" class="text-sm font-medium" style="color: var(--text-primary);">Email Address</label>
+                            <input id="email" name="email" type="email" required class="mt-2 block w-full px-4 py-2 border rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 transition" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary); --tw-ring-color: var(--accent-color);" placeholder="you@example.com">
+                        </div>
+                        <div>
+                            <label for="password" class="text-sm font-medium" style="color: var(--text-primary);">Password</label>
+                            <input id="password" name="password" type="password" required class="mt-2 block w-full px-4 py-2 border rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 transition" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary); --tw-ring-color: var(--accent-color);" placeholder="••••••••">
+                        </div>
+                        <p id="login-error" class="text-sm text-red-400 text-center hidden"></p>
+                        <div>
+                            <button type="submit" id="login-button" class="w-full flex justify-center py-3 px-4 rounded-md shadow-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 btn-theme">
+                                <span class="button-text font-serif tracking-wider">Sign In</span>
+                                <div class="loader animate-spin w-5 h-5 border-2 border-t-transparent border-white rounded-full hidden"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <footer class="border-t py-8" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+            <div class="container mx-auto px-6 text-center">
+                <p style="color: var(--text-secondary);">&copy; 2024 ParaLegal. All Rights Reserved.</p>
+                <div class="flex justify-center gap-6 mt-4">
+                    <a href="#" class="transition-colors" style="color: var(--text-secondary);"><i data-lucide="twitter"></i></a>
+                    <a href="#" class="transition-colors" style="color: var(--text-secondary);"><i data-lucide="linkedin"></i></a>
+                    <a href="#" class="transition-colors" style="color: var(--text-secondary);"><i data-lucide="instagram"></i></a>
+                    <a href="#" class="transition-colors" style="color: var(--text-secondary);"><i data-lucide="facebook"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <div id="chatbot-page" class="hidden h-screen">
+        <div class="flex h-full w-full">
+            <div class="w-1/3 flex flex-col p-8 border-r-2 fade-in" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                 <div class="flex-shrink-0 text-center">
+                    <div id="avatar-container" class="w-48 h-48 mx-auto mb-6 rounded-full transition-all duration-300">
+                        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="100" cy="100" r="98" fill="#2a2018" stroke="#D4AF37" stroke-width="4" stroke-opacity="0.8"/>
+                          <path d="M95 128 C 95 140, 105 140, 105 128 Z" fill="#e6c6aa"/>
+                          <path d="M100 135 c-25 0-45 35-45 65 h90 c0-30-20-65-45-65z" fill="#382e25"/>
+                          <path d="M100 135 l-15 20 l30 0 Z" fill="#fdfbf7"/>
+                          <circle cx="100" cy="90" r="40" fill="#e6c6aa"/>
+                          <path d="M100 50 c-25 0-40 15-40 35 c0 5 2 10 5 13 c15-20 70-20 70 0 c3-3 5-8 5-13 c0-20-15-35-40-35z" fill="#382e25"/>
+                          <path d="M60 85 a 40 40 0 0 1 80 0" fill="none"/>
+                          <path d="M60 85 q -5 -40 40 -40" stroke="#382e25" stroke-width="30" fill="none" stroke-linecap="round"/>
+                          <path d="M140 85 q 5 -40 -40 -40" stroke="#382e25" stroke-width="30" fill="none" stroke-linecap="round"/>
+                          <circle cx="85" cy="92" r="4" fill="#382e25"/><circle cx="115" cy="92" r="4" fill="#382e25"/>
+                          <path d="M95 108c3 3 7 3 10 0" fill="none" stroke="#382e25" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-4xl font-serif text-center tracking-wider" style="color: var(--text-primary);">ParaLegal</h2>
+                    <p class="mt-2 text-center" style="color: var(--text-secondary); opacity: 0.7;">AI Legal Counsel</p>
+                </div>
+                
+                <div class="w-full h-px my-8" style="background-color: var(--border-color);"></div>
+
+                <div class="w-full space-y-3 mt-auto flex-shrink-0">
+                    <button id="chatbot-theme-toggle" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md shadow-lg text-base font-semibold transition-all duration-300 transform hover:scale-105" style="background-color: var(--bg-accent); color: var(--text-primary);">
+                    </button>
+                    <button id="export-chat-button" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md shadow-lg text-base font-semibold transition-all duration-300 transform hover:scale-105" style="background-color: var(--bg-accent); color: var(--text-primary);">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Export Chat</span>
+                    </button>
+                    <button id="toggle-speech-button" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md shadow-lg text-base font-semibold transition-all duration-300 transform hover:scale-105 btn-mute" style="background-color: var(--bg-accent); color: var(--text-primary);">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                        <span id="toggle-speech-text">Mute</span>
+                    </button>
+                    <button id="clear-chat-button" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md shadow-lg text-base font-semibold transition-all duration-300 transform hover:scale-105 btn-theme">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>New Conversation</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="w-2/3 flex flex-col h-screen" style="background-color: var(--bg-secondary);">
+                <main id="chat-area" class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                    <div id="message-container" class="max-w-full mx-auto space-y-6"></div>
+                </main>
+                <footer class="bg-opacity-80 backdrop-blur-sm border-t p-4 shadow-inner z-10 flex-shrink-0" style="background-color: var(--bg-primary); border-color: var(--border-color);">
+                    <div class="max-w-full mx-auto">
+                        <form id="chat-form" class="flex items-center gap-3 border rounded-lg p-2 transition-all duration-300 focus-within:ring-2" style="background-color: var(--bg-secondary); border-color: var(--border-color); --tw-ring-color: var(--accent-color);">
+                            <button type="button" id="voice-button" class="relative rounded-full p-2 transition-colors" style="color: var(--text-secondary); opacity: 0.7;">
+                                <i data-lucide="mic" class="w-5 h-5"></i>
+                            </button>
+                            <input id="chat-input" type="text" placeholder="Enter your legal query or use the microphone" class="flex-1 bg-transparent placeholder-gray-500 focus:outline-none px-2" style="color: var(--text-primary);" autocomplete="off">
+                            <button id="send-button" type="submit" class="rounded-md p-3 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center transform hover:scale-110 btn-theme disabled:opacity-50">
+                                <i data-lucide="send" class="send-icon w-5 h-5"></i>
+                                <div class="loader animate-spin w-5 h-5 border-2 border-t-transparent border-white rounded-full hidden"></div>
+                            </button>
+                        </form>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const websiteView = document.getElementById('website-view');
+            const chatbotPage = document.getElementById('chatbot-page');
+            const loginForm = document.getElementById('login-form');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const messageContainer = document.getElementById('message-container');
+            const chatArea = document.getElementById('chat-area');
+            const avatarContainer = document.getElementById('avatar-container');
+            const clearChatButton = document.getElementById('clear-chat-button');
+            const voiceButton = document.getElementById('voice-button');
+            const themeToggleButton = document.getElementById('theme-toggle');
+            const chatbotThemeToggleButton = document.getElementById('chatbot-theme-toggle');
+            const toggleSpeechButton = document.getElementById('toggle-speech-button');
+            const toggleSpeechText = document.getElementById('toggle-speech-text');
+            const exportChatButton = document.getElementById('export-chat-button');
+            
+            lucide.createIcons();
+
+            let isMuted = false;
+            let femaleVoice = null;
+            let currentChat = [];
+
+            function applyTheme(theme) {
+                const mainToggleIcon = theme === 'dark' ? 'sun' : 'moon';
+                const chatbotToggleIcon = theme === 'dark' ? 'sun' : 'moon';
+                const chatbotToggleText = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+                
+                themeToggleButton.innerHTML = `<i data-lucide="${mainToggleIcon}" class="w-5 h-5" style="color: var(--text-secondary);"></i>`;
+                chatbotThemeToggleButton.innerHTML = `<i data-lucide="${chatbotToggleIcon}" class="w-4 h-4"></i><span>${chatbotToggleText}</span>`;
+                lucide.createIcons();
+            }
+
+            function handleThemeToggle() {
+                const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            }
+
+            themeToggleButton.addEventListener('click', handleThemeToggle);
+            chatbotThemeToggleButton.addEventListener('click', handleThemeToggle);
+
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition;
+            let isListening = false;
+            
+            function loadVoices() {
+                const voices = speechSynthesis.getVoices();
+                femaleVoice = voices.find(voice => voice.lang.startsWith('en-') && voice.name.includes('Female')) ||
+                              voices.find(voice => voice.lang.startsWith('en-') && voice.name.includes('Samantha')) ||
+                              voices.find(voice => voice.lang.startsWith('en-') && voice.name.includes('Google')) ||
+                              voices.find(voice => voice.lang.startsWith('en-'));
+            }
+
+            speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+
+                recognition.onstart = () => { isListening = true; voiceButton.classList.add('mic-listening'); };
+                recognition.onend = () => { isListening = false; voiceButton.classList.remove('mic-listening'); };
+                recognition.onresult = (event) => {
+                    chatInput.value = event.results[0][0].transcript;
+                    chatForm.dispatchEvent(new Event('submit'));
+                };
+                recognition.onerror = (event) => { console.error('Speech recognition error:', event.error); isListening = false; voiceButton.classList.remove('mic-listening'); };
+            } else {
+                console.log('Speech Recognition not supported.');
+                voiceButton.style.display = 'none';
+            }
+
+            const speak = (text) => {
+                if (isMuted) return;
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                utterance.onstart = () => { avatarContainer.classList.add('is-speaking'); };
+                utterance.onend = () => { avatarContainer.classList.remove('is-speaking'); };
+                utterance.onerror = () => { avatarContainer.classList.remove('is-speaking'); };
+
+                if (femaleVoice) utterance.voice = femaleVoice;
+                speechSynthesis.speak(utterance);
+            };
+
+            voiceButton.addEventListener('click', () => {
+                if (isListening) { recognition.stop(); } else { recognition.start(); }
+            });
+            
+            toggleSpeechButton.addEventListener('click', () => {
+                isMuted = !isMuted;
+                const iconEl = toggleSpeechButton.querySelector('i');
+                if (isMuted) {
+                    speechSynthesis.cancel();
+                    avatarContainer.classList.remove('is-speaking');
+                    iconEl.setAttribute('data-lucide', 'volume-x');
+                    toggleSpeechText.textContent = 'Unmute';
+                    toggleSpeechButton.classList.add('muted');
+                } else {
+                    iconEl.setAttribute('data-lucide', 'volume-2');
+                    toggleSpeechText.textContent = 'Mute';
+                    toggleSpeechButton.classList.remove('muted');
+                }
+                lucide.createIcons();
+            });
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                websiteView.classList.add('hidden');
+                chatbotPage.classList.remove('hidden');
+                chatbotPage.classList.add('flex', 'fade-in');
+                startNewConversation();
+            });
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userInput = chatInput.value.trim();
+                if (!userInput || chatInput.disabled) return;
+
+                addUserMessage(userInput);
+                chatInput.value = '';
+                toggleLoading(true);
+
+                const backendUrl = 'http://127.0.0.1:8000/query';
+                try {
+                    const response = await fetch(backendUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: userInput }),
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                    const data = await response.json();
+                    const botResponseText = data.response || "I was unable to retrieve a response for that query.";
+                    addBotMessage(botResponseText);
+                    speak(botResponseText);
+
+                } catch (error) {
+                    console.error("Failed to fetch from backend:", error);
+                    const detailedError = `A connection error occurred. Please ensure the ParaLegal server and Ollama services are running correctly.`;
+                    addBotMessage(detailedError);
+                    speak(detailedError);
+                } finally {
+                    toggleLoading(false);
+                }
+            });
+
+            clearChatButton.addEventListener('click', startNewConversation);
+            
+            exportChatButton.addEventListener('click', () => {
+                let chatText = "ParaLegal Conversation\n";
+                chatText += "======================\n\n";
+                currentChat.forEach(msg => {
+                    chatText += `${msg.sender.toUpperCase()}: ${msg.text}\n\n`;
+                });
+                
+                const blob = new Blob([chatText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `paralegal-chat-${new Date().getTime()}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            function startNewConversation() {
+                speechSynthesis.cancel();
+                avatarContainer.classList.remove('is-speaking');
+                messageContainer.innerHTML = '';
+                currentChat = [];
+                const welcomeMessage = "Welcome to ParaLegal. Please state your legal query, and I shall provide my analysis.";
+                addBotMessage(welcomeMessage);
+                speak(welcomeMessage);
+            }
+
+            const toggleLoading = (isLoading) => {
+                const sendButton = document.getElementById('send-button');
+                const sendIcon = sendButton.querySelector('.send-icon');
+                const loader = sendButton.querySelector('.loader');
+                
+                chatInput.disabled = isLoading;
+                sendButton.disabled = isLoading;
+                voiceButton.disabled = isLoading;
+                
+                if (isLoading) {
+                    if(sendIcon) sendIcon.classList.add('hidden');
+                    loader.classList.remove('hidden');
+                    addLoadingIndicator();
+                } else {
+                    if(sendIcon) sendIcon.classList.remove('hidden');
+                    loader.classList.add('hidden');
+                    removeLoadingIndicator();
+                }
+            };
+
+            const scrollToBottom = () => {
+                chatArea.scrollTop = chatArea.scrollHeight;
+            };
+            
+            function typeWriter(element, text, speed) {
+                let i = 0;
+                element.innerHTML = "";
+                element.classList.add('typewriter');
+                function type() {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        scrollToBottom();
+                        setTimeout(type, speed);
+                    } else {
+                         element.classList.remove('typewriter');
+                    }
+                }
+                type();
+            }
+
+            const createMessageElement = (message, sender) => {
+                const isBot = sender === 'bot';
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex items-start gap-4 my-4 ${isBot ? 'justify-start' : 'justify-end'} fade-in`;
+                
+                const iconContainer = document.createElement('div');
+                iconContainer.className = `w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center`;
+                iconContainer.style.backgroundColor = isBot ? 'var(--bg-accent)' : 'var(--accent-color)';
+                iconContainer.style.border = `1px solid var(--border-color)`;
+                
+                iconContainer.innerHTML = `<i data-lucide="${isBot ? 'scale' : 'user'}" style="color: var(--text-secondary);"></i>`;
+
+                const textContainer = document.createElement('div');
+                textContainer.className = 'flex flex-col';
+
+                const textDiv = document.createElement('div');
+                textDiv.className = `max-w-xl p-4 rounded-lg shadow-lg`;
+                textDiv.style.backgroundColor = isBot ? 'var(--bg-primary)' : 'var(--accent-color)';
+                textDiv.style.color = isBot ? 'var(--text-primary)' : 'white';
+                textDiv.style.whiteSpace = 'pre-wrap';
+                
+                if (isBot) {
+                    typeWriter(textDiv, message, 20);
+                } else {
+                    textDiv.textContent = message;
+                }
+
+                textContainer.appendChild(textDiv);
+
+                if (isBot) {
+                    const feedbackContainer = document.createElement('div');
+                    feedbackContainer.className = 'text-xs mt-2 self-start flex items-center gap-4';
+                    feedbackContainer.style.color = 'var(--text-secondary)';
+                    
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'hover:opacity-100 flex items-center gap-1 transition-colors opacity-60';
+                    copyButton.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i><span>Copy</span>`;
+                    copyButton.onclick = () => {
+                        navigator.clipboard.writeText(message).then(() => {
+                            copyButton.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-green-400"></i><span>Copied!</span>`;
+                            lucide.createIcons();
+                            setTimeout(() => {
+                                copyButton.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i><span>Copy</span>`;
+                                lucide.createIcons();
+                            }, 2000);
+                        });
+                    };
+
+                    feedbackContainer.appendChild(copyButton);
+                    textContainer.appendChild(feedbackContainer);
+                }
+
+                if (isBot) {
+                    messageDiv.appendChild(iconContainer);
+                    messageDiv.appendChild(textContainer);
+                } else {
+                    messageDiv.appendChild(textContainer);
+                    messageDiv.appendChild(iconContainer);
+                }
+                
+                return messageDiv;
+            };
+
+            const addUserMessage = (message) => {
+                currentChat.push({ sender: 'user', text: message });
+                const messageElement = createMessageElement(message, 'user');
+                messageContainer.appendChild(messageElement);
+                lucide.createIcons();
+                scrollToBottom();
+            };
+
+            const addBotMessage = (message) => {
+                currentChat.push({ sender: 'bot', text: message });
+                const messageElement = createMessageElement(message, 'bot');
+                messageContainer.appendChild(messageElement);
+                lucide.createIcons();
+                scrollToBottom();
+            };
+
+            const addLoadingIndicator = () => {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loading-indicator';
+                loadingDiv.className = 'flex items-start gap-4 my-4 justify-start fade-in';
+                loadingDiv.innerHTML = `
+                    <div class="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center" style="background-color: var(--bg-accent); border: 1px solid var(--border-color);">
+                        <i data-lucide="scale" style="color: var(--text-secondary);"></i>
+                    </div>
+                    <div class="max-w-xl p-4 rounded-lg shadow-lg" style="background-color: var(--bg-primary);">
+                         <span class="italic" style="color: var(--text-secondary); opacity: 0.7;">ParaLegal is typing...</span>
+                    </div>
+                `;
+                messageContainer.appendChild(loadingDiv);
+                lucide.createIcons();
+                scrollToBottom();
+            };
+            
+            const removeLoadingIndicator = () => {
+                const indicator = document.getElementById('loading-indicator');
+                if (indicator) indicator.remove();
+            };
+
+            document.querySelectorAll('.spotlight-effect').forEach(card => {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--x', `${x}px`);
+                    card.style.setProperty('--y', `${y}px`);
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
